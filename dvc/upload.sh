@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-DVC_REPO_PATH=""
+DVC_REPO_PATH=""  # Set the path to your DVC repository
 DVC_REMOTE_URL="https://github.com/prashantkul/mlops.git"
 FILE_TO_UPLOAD=$1  # File path to upload (passed as an argument)
 COMMIT_MESSAGE="Adding file to DVC repository"
