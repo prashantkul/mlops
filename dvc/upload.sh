@@ -57,6 +57,7 @@ fi
 # Stage changes for Git commit (add .dvc file and .gitignore changes)
 echo "Staging changes for Git commit..."
 git add "$FILE_TO_UPLOAD" .gitignore
+git add data/.gitignore "$FILE_TO_UPLOAD" dvc
 git add config_manager.py data_preprocessor.py dvc/download.py dvc/upload.sh requirements.txt services/preprocess.py
 
 # Commit changes to Git
