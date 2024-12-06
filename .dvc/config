@@ -1,0 +1,7 @@
+[core]
+    remote = dvcremote
+    autostage = true
+['remote "origin"']
+    url = https://github.com/prashantkul/mlops.git
+['remote "dvcremote"']
+    url = ../Development/dvcremote
