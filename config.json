@@ -3,5 +3,8 @@
     "credit_application_dataset" : "application_record.csv",
     "credit_record_dataset" : "credit_record.csv",
     "AIRLFOW_HOME" : "/Users/prashantkulkarni/airflow",
-    "model_location" : "/Users/prashantkulkarni/Documents/ml-ops/project/model"
+    "model_location" : "/Users/prashantkulkarni/Documents/ml-ops/project/model",
+    "gcs_bucket" : "mlops-final-project-232",
+    "gcs_remote_path" : "dataset",
+    "gcs_client_id" : "pk-arg-prj4-datasci"
 }
