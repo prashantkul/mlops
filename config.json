@@ -1,0 +1,7 @@
+{
+    "os_separator" : "/",
+    "credit_application_dataset" : "application_record.csv",
+    "credit_record_dataset" : "credit_record.csv",
+    "AIRLFOW_HOME" : "/Users/prashantkulkarni/airflow",
+    "model_location" : "/Users/prashantkulkarni/Documents/ml-ops/project/model"
+}
