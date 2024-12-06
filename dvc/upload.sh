@@ -48,6 +48,7 @@ fi
 # Add the file to DVC tracking
 echo "Adding '$FILE_TO_UPLOAD' to DVC tracking..."
 dvc add "$FILE_TO_UPLOAD"
+git add "$FILE_TO_UPLOAD.dvc"
 if [ $? -ne 0 ]; then
     echo "Failed to add file to DVC tracking."
     exit 1
@@ -55,7 +56,7 @@ fi
 
 # Stage changes for Git commit (add .dvc file and .gitignore changes)
 echo "Staging changes for Git commit..."
-git add "$FILE_TO_UPLOAD.dvc" .gitignore
+git add "$FILE_TO_UPLOAD" .gitignore
 git add config_manager.py data_preprocessor.py dvc/download.py dvc/upload.sh requirements.txt services/preprocess.py
 
 # Commit changes to Git
