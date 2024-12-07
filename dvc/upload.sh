@@ -4,6 +4,7 @@
 DVC_REPO_PATH=""  # Set the path to your DVC repository
 GCS_BUCKET="mlops-final-project-232"  # Your GCS bucket name
 GCS_REMOTE_PATH="dataset"  # Path in the GCS bucket to store DVC files
+GCS_CLIENT_ID="pk-arg-prj4-datasci"
 FILE_TO_UPLOAD=$1  # File path to upload (passed as an argument)
 COMMIT_MESSAGE="Adding file to DVC repository"
 
@@ -43,7 +44,8 @@ fi
 if ! dvc remote list | grep -q "gcs_remote"; then
     echo "Setting up DVC remote for GCS bucket..."
     dvc remote add -d gcs_remote gs://$GCS_BUCKET/$GCS_REMOTE_PATH
-    dvc remote modify gcs_remote --local gdrive_client_id $(gcloud auth application-default print-access-token)
+    dvc remote modify gcs_remote --local gdrive_client_id $GCS_CLIENT_ID
+    dvc remote modify --local gcs_remote gdrive_use_service_account true
     echo "DVC remote 'gcs_remote' configured for GCS bucket."
 fi
 
