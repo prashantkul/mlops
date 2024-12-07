@@ -1,16 +1,6 @@
-import json
-import warnings
-from typing import List, Dict, Optional, Any, Tuple
+from typing import Tuple
 
 import pandas as pd
-import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
-from imblearn.over_sampling import SMOTE
-from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
-import seaborn as sns
 import kagglehub
 
 from config_manager import ConfigManager
@@ -19,30 +9,30 @@ class DataPreprocessor:
     """Handles loading and basic preprocessing of credit risk data"""
     
     def __init__(self):
-        config_manager= ConfigManager()
+        config_manager = ConfigManager()
         self.application_data = None
         self.credit_record = None
-        self.dataset_path = config_manager.get_config('dataset_location')
-        self.credit_record_path = config_manager.get_config('credit_record_dataset')
-        self.credit_application_path = config_manager.get_config('credit_application_dataset')
+        self.kaggle_path = kagglehub.dataset_download("rikdifos/credit-card-approval-prediction")
         self.os_sep = config_manager.get_config('os_separator')
-        self.application_path = 
+        self.credit_application_path = self.kaggle_path + self.os_sep + config_manager.get_config('credit_application_dataset')
+        self.credit_record_path = self.kaggle_path + self.os_sep + config_manager.get_config('credit_record_dataset')
+
+        self.application_path = None
     
     def download_dataset_from(self):
         """Download the dataset from Kaggle"""
         # Implementation details depend on the specific Kaggle API and dataset
         # Download latest version
-        path = kagglehub.dataset_download("rikdifos/credit-card-approval-prediction")
-        
+
         # read files 
-        self.load_data(path + self.os_sep + self.credit_application_path,
-                       path + self.os_sep + self.credit_record_path)
+        self.load_data()
         print("Dataset downloaded and loaded successfully.")
 
-    def load_data(self, application_path, credit_record_path) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Load the application and credit record data"""
-        self.application_data = pd.read_csv(application_path, encoding='utf-8')
-        self.credit_record = pd.read_csv(credit_record_path, encoding='utf-8')
+        print(self.credit_application_path)
+        self.application_data = pd.read_csv(self.credit_application_path, encoding='utf-8')
+        self.credit_record = pd.read_csv(self.credit_record_path, encoding='utf-8')
         return self.application_data, self.credit_record
         
     def create_target_variable(self):
@@ -91,5 +81,3 @@ class DataPreprocessor:
             'OCCUPATION_TYPE': 'occyp'
         }
         return data.rename(columns=column_map)
-
-
