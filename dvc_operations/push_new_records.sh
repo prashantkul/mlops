@@ -17,7 +17,7 @@ cd "$DVC_REPO_PATH" || exit 1
 # Debug: Show current directory
 echo "Current directory: $(pwd)"
 
-# Find all `.dvc` files that are not staged in Git
+# Find all `.dvc_operations` files that are not staged in Git
 UNSTAGED_DVC_FILES=$(git ls-files --others --exclude-standard | grep ".dvc")
 
 if [ -z "$UNSTAGED_DVC_FILES" ]; then
@@ -51,7 +51,7 @@ fi
 
 # Push the files to the DVC remote
 echo "Pushing new DVC records to the DVC remote..."
-dvc push
+dvc_operations push
 if [ $? -ne 0 ]; then
     echo "Failed to push DVC records to the remote."
     exit 1

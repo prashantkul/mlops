@@ -36,33 +36,33 @@ fi
 # Initialize DVC if not already done
 if [ ! -d ".dvc" ]; then
     echo "Initializing DVC..."
-    dvc init
+    dvc_operations init
     echo "DVC initialized."
 fi
 
 # Set up DVC remote for GCS bucket if not already configured
-if ! dvc remote list | grep -q "gcs_remote"; then
+if ! dvc_operations remote list | grep -q "gcs_remote"; then
     echo "Setting up DVC remote for GCS bucket..."
-    dvc remote add -d gcs_remote gs://$GCS_BUCKET/$GCS_REMOTE_PATH
-    dvc remote modify gcs_remote --local gdrive_client_id $GCS_CLIENT_ID
-    dvc remote modify --local gcs_remote gdrive_use_service_account true
+    dvc_operations remote add -d gcs_remote gs://$GCS_BUCKET/$GCS_REMOTE_PATH
+    dvc_operations remote modify gcs_remote --local gdrive_client_id $GCS_CLIENT_ID
+    dvc_operations remote modify --local gcs_remote gdrive_use_service_account true
     echo "DVC remote 'gcs_remote' configured for GCS bucket."
 fi
 
 # Add the file to DVC tracking
 echo "Adding '$FILE_TO_UPLOAD' to DVC tracking..."
-dvc add "$FILE_TO_UPLOAD"
+dvc_operations add "$FILE_TO_UPLOAD"
 git add "$FILE_TO_UPLOAD.dvc"
 if [ $? -ne 0 ]; then
     echo "Failed to add file to DVC tracking."
     exit 1
 fi
 
-# Stage changes for Git commit (add .dvc file and .gitignore changes)
+# Stage changes for Git commit (add .dvc_operations file and .gitignore changes)
 echo "Staging changes for Git commit..."
 git add "$FILE_TO_UPLOAD" .gitignore
-git add data/.gitignore "$FILE_TO_UPLOAD" dvc
-git add config_manager.py data_preprocessor.py dvc/download.py dvc/upload.sh requirements.txt services/preprocess.py
+git add data/.gitignore "$FILE_TO_UPLOAD" dvc_operations
+git add config_manager.py data_preprocessor.py dvc_operations/download.py dvc_operations/upload.sh requirements.txt services/preprocess.py
 
 # Commit changes to Git
 echo "Committing changes to Git..."
@@ -70,7 +70,7 @@ git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit."
 
 # Push the file to DVC remote
 echo "Pushing file to DVC remote..."
-dvc push
+dvc_operations push
 if [ $? -ne 0 ]; then
     echo "Failed to push file to DVC remote."
     exit 1

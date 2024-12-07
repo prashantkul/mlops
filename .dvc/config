@@ -1,7 +1,9 @@
 [core]
-    remote = dvcremote
+    remote = gcs_remote
     autostage = true
 ['remote "origin"']
     url = https://github.com/prashantkul/mlops.git
 ['remote "dvcremote"']
     url = ../Development/dvcremote
+['remote "gcs_remote"']
+    url = gs://mlops-final-project-232/dataset
