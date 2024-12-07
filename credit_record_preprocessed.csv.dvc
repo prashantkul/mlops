@@ -1,0 +1,5 @@
+outs:
+- md5: 1c38ec4572ecf487470fde3a8f9ee2e6
+  size: 4836810
+  hash: md5
+  path: credit_record_preprocessed.csv
