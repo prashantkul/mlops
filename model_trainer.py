@@ -4,13 +4,8 @@ from typing import List, Dict, Optional, Any
 
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
 from imblearn.over_sampling import SMOTE
-from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 import h2o
 from h2o.automl import H2OAutoML
@@ -18,9 +13,10 @@ from h2o.automl import H2OAutoML
 class ModelTrainer:
     """Handles model training and evaluation for credit risk prediction"""
     
-    def __init__(self, data_path, to_split: bool = True):
+    def __init__(self, data_path = "", to_split: bool = True):
         self.model = None
-        self.data = self.data = pd.read_csv(data_path)
+        self.data_path = data_path
+        self.data = None
         self.train = None
         self.test = None
         self.drift = None
@@ -109,7 +105,7 @@ class ModelTrainer:
 
     def save_model_and_test_data(self):
         # Save model to GCS bucket:
-        h2o.save_model(self.model, path = 'gs://mlops_final/credit_risk_model')
+        h2o.save_model(self.model, path = 'gs://mlops-final-project-232/credit_risk_model')
 
         # Save test set to GCS bucket:
-        self.test.to_csv('gs://mlops_final/credit_risk_test_data.csv', index=False)
+        self.test.to_csv('gs://mlops-final-project-232/credit_risk_test_data.csv', index=False)
