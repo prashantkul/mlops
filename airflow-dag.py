@@ -1,29 +1,17 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from datetime import datetime, timedelta
 
-def split_dataset():
-    # Load dataset
-    data = pd.read_csv('/path/to/credit_card_data.csv')
+from data_preprocessor import DataPreprocessor
+from model_trainer import ModelTraining
+from model_trainer import ModelEvaluation
+from model_deployer import ModelDeployment
 
-    # Split into features (X) and outcome (y)
-    X = data.drop(columns=['Approval'])
-    y = data['Approval']
-
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Save datasets
-    X_train.to_csv('/path/to/X_train.csv', index=False)
-    X_test.to_csv('/path/to/X_test.csv', index=False)
-    y_train.to_csv('/path/to/y_train.csv', index=False)
-    y_test.to_csv('/path/to/y_test.csv', index=False)
 
 # Default arguments for the DAG
 default_args = {
     'owner': 'airflow',
+    'depends_on_past': True,
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
 }
@@ -38,11 +26,26 @@ with DAG(
     catchup=False,
 ) as dag:
     
-    # Define tasks
-    split_task = PythonOperator(
-        task_id='split_dataset',
-        python_callable=split_dataset
+    # Define the tasks using PythonOperator
+    preprocess_task = PythonOperator(
+        task_id='preprocess_data',
+        python_callable=DataPreprocessor.preprocess_data,
     )
-
-    # Define task dependencies
-    split_task
+    
+    train_task = PythonOperator(
+        task_id='train_model',
+        python_callable=ModelTraining.train_model,
+    )
+    
+    evaluate_task = PythonOperator(
+        task_id='evaluate_model',
+        python_callable=ModelEvaluation.evaluate_model,
+    )
+    
+    deploy_task = PythonOperator(
+        task_id='deploy_model',
+        python_callable=ModelDeployment.deploy_model,
+    )
+    
+    # Set task dependencies
+    preprocess_task >> train_task >> evaluate_task >> deploy_task
