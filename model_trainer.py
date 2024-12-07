@@ -109,13 +109,13 @@ class ModelTrainer:
         drift_1["gp_worktm_medium"] = self.test["gp_worktm_medium"].sample(frac=1).reset_index(drop=True)
         self.drift = drift_1
 
-    def evaluate_model(self, data = None):
+    def evaluate_model(self, data = 'test'):
         """Evaluate model performance"""
-        if data is None:
+        if data == 'test':
             data = self.test
             set_name = 'Test'
 
-        elif data = 'drift':
+        elif data == 'drift':
             data = self.drift
             set_name = 'Drifted'
         
