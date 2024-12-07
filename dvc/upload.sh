@@ -2,7 +2,8 @@
 
 # Define variables
 DVC_REPO_PATH=""  # Set the path to your DVC repository
-DVC_REMOTE_URL="https://github.com/prashantkul/mlops.git"
+GCS_BUCKET="mlops-final-project-232"  # Your GCS bucket name
+GCS_REMOTE_PATH="dataset"  # Path in the GCS bucket to store DVC files
 FILE_TO_UPLOAD=$1  # File path to upload (passed as an argument)
 COMMIT_MESSAGE="Adding file to DVC repository"
 
@@ -38,11 +39,12 @@ if [ ! -d ".dvc" ]; then
     echo "DVC initialized."
 fi
 
-# Ensure the DVC remote is set
-if ! dvc remote list | grep -q "origin"; then
-    echo "Setting up DVC remote 'origin'..."
-    dvc remote add -d origin "$DVC_REMOTE_URL"
-    echo "DVC remote 'origin' configured."
+# Set up DVC remote for GCS bucket if not already configured
+if ! dvc remote list | grep -q "gcs_remote"; then
+    echo "Setting up DVC remote for GCS bucket..."
+    dvc remote add -d gcs_remote gcs://$GCS_BUCKET/$GCS_REMOTE_PATH
+    dvc remote modify gcs_remote --local gdrive_client_id $(gcloud auth application-default print-access-token)
+    echo "DVC remote 'gcs_remote' configured for GCS bucket."
 fi
 
 # Add the file to DVC tracking
