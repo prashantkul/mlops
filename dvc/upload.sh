@@ -42,7 +42,7 @@ fi
 # Set up DVC remote for GCS bucket if not already configured
 if ! dvc remote list | grep -q "gcs_remote"; then
     echo "Setting up DVC remote for GCS bucket..."
-    dvc remote add -d gcs_remote gcs://$GCS_BUCKET/$GCS_REMOTE_PATH
+    dvc remote add -d gcs_remote gs://$GCS_BUCKET/$GCS_REMOTE_PATH
     dvc remote modify gcs_remote --local gdrive_client_id $(gcloud auth application-default print-access-token)
     echo "DVC remote 'gcs_remote' configured for GCS bucket."
 fi
