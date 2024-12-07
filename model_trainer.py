@@ -18,12 +18,13 @@ from h2o.automl import H2OAutoML
 class ModelTrainer:
     """Handles model training and evaluation for credit risk prediction"""
     
-    def __init__(self, data: pd.DataFrame):
+    def __init__(self, data_path, to_split: bool = True):
         self.model = None
-        self.data = data
+        self.data = self.data = pd.read_csv(data_path)
         self.train = None
         self.test = None
         self.drift = None
+        self.to_split = to_split
         #self.val = None
         #self.X_test = None
         #self.y_test = None
@@ -31,6 +32,8 @@ class ModelTrainer:
     def prepare_training_data(self, split = 0.1, resample = True):
         """Prepare data for training"""
         
+        self.data = pd.read_csv(self.data_path)
+
         # Verify correct columns:
         features = ["Gender","Reality","ChldNo_1","wkphone","gp_Age_high", "gp_Age_highest", "gp_Age_low", "gp_Age_lowest","gp_worktm_high", "gp_worktm_highest", "gp_worktm_low", 
                 "gp_worktm_medium","occyp_hightecwk","occyp_officewk","famsizegp_1", "famsizegp_3more","houtp_Co-op apartment", "houtp_Municipal apartment","houtp_Office apartment",
@@ -48,8 +51,11 @@ class ModelTrainer:
             resampled['target'] = y_resampled
             self.data = resampled
 
-        self.train, self.test = train_test_split(self.data, test_size=split, random_state=10086)
-        
+        if self.to_split == True:
+            self.train, self.test = train_test_split(self.data, test_size=split, random_state=10086)
+        else:
+            self.train = self.data
+
         '''
         # Split Data
         self.train, test_val = train_test_split(self.data, test_size=split, random_state=10086)
@@ -101,43 +107,9 @@ class ModelTrainer:
 
         self.model = aml.leader
 
+    def save_model_and_test_data(self):
+        # Save model to GCS bucket:
+        h2o.save_model(self.model, path = 'gs://mlops_final/credit_risk_model')
 
-    def create_feature_drift(self):
-        drift_1 = self.test.copy()
-        drift_1["ChldNo_1"] = self.test["ChldNo_1"].sample(frac=1).reset_index(drop=True)
-        drift_1["gp_Age_low"] = self.test["gp_Age_low"].sample(frac=1).reset_index(drop=True)
-        drift_1["gp_worktm_medium"] = self.test["gp_worktm_medium"].sample(frac=1).reset_index(drop=True)
-        self.drift = drift_1
-
-    def evaluate_model(self, data = 'test'):
-        """Evaluate model performance"""
-        if data == 'test':
-            data = self.test
-            set_name = 'Test'
-
-        elif data == 'drift':
-            data = self.drift
-            set_name = 'Drifted'
-        
-        # Split data into features and target
-        X = data.drop(columns=['target'])
-        y = data['target']
-
-        y_predict = self.model.predict(X)
-        accuracy = accuracy_score(y, y_predict)
-        conf_matrix = confusion_matrix(y, y_predict)
-        
-        print(f'Accuracy Score is {accuracy:.5}')
-        print(pd.DataFrame(conf_matrix))
-        
-        # Plot confusion matrix
-        plt.figure(figsize=(8, 6))
-        sns.heatmap(conf_matrix/np.sum(conf_matrix), 
-                   annot=True, fmt='.2%',
-                   cmap='Blues')
-        plt.title(f'Normalized Confusion Matrix: {set_name} Data')
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
-        plt.show()
-
-        ### May need to add logic here to save and export evaluation results, unsure how this will interract with AirFlow and Model Monitoring ###
+        # Save test set to GCS bucket:
+        self.test.to_csv('gs://mlops_final/credit_risk_test_data.csv', index=False)
