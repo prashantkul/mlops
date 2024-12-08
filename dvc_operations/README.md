@@ -29,7 +29,7 @@ DVC records get created when you run the `upload.sh` script. To push new records
 To read a file from DVC to a pandas DataFrame, run the following command:
 
 ```bash
-./read.py <file_path>
+read_dataframe(<file_path>, revision=None)
 ```
 
 Replace `<file_path>` with the path to the file you want to read.
@@ -39,7 +39,7 @@ Replace `<file_path>` with the path to the file you want to read.
 To save a pandas DataFrame to a CSV file, run the following command:
 
 ```bash
-./save.py <file_path>
+read_csv(<dvc_file_path>, local_file_path=None, revision=None)
 ```
 
 Replace `<file_path>` with the path to the file you want to save.
