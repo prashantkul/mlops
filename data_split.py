@@ -34,7 +34,7 @@ class DataSplitter:
 
         self.train, self.test = train_test_split(self.data, test_size=split, random_state=47, stratify=self.data['target'])
         self.train.to_csv("data\cred_card_featured_eng_train.csv", index=False)
-        self.test.to_csv("data\cred_card_featured_eng_test_ref.csv.csv", index=False)
+        self.test.to_csv("data\cred_card_featured_eng_test_ref.csv", index=False)
     
     def drift_data(self):
         """Simulate data drift by altering feature columns"""
@@ -44,7 +44,7 @@ class DataSplitter:
         mask = np.random.choice([1, 0], size=len(self.drift_random), p=[0.5, 0.5])
         multiplier = np.where(mask == 1, multiplier, 1)
         self.drift_random['inc'] = self.drift_random['inc'] * multiplier
-        self.drift_random['Gender'] = np.random.choice([0, 1], size=len(df), p=[0.25, 0.75])
+        self.drift_random['Gender'] = np.random.choice([0, 1], size=len(self.drift_random), p=[0.25, 0.75])
 
         # Calculate a moderate level of differential privacy for income:
         sensitivity = self.test['income'].max() - self.test['income'].min()
