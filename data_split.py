@@ -64,4 +64,3 @@ class DataSplitter:
         self.drift_random.to_csv("data\credit_record_test_drift_random.csv", index=False)
         self.drift_gaus.to_csv("data\credit_record_test_drift_gaus.csv", index=False)
         self.drift_lap.to_csv("data\credit_record_test_drift_lap.csv", index=False)
-        print("Data drift simulated successfully.")
