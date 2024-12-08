@@ -6,16 +6,19 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
+from config_manager import ConfigManager
 
 import h2o
 from h2o.automl import H2OAutoML
 
+from dvc_operations.download import DVCReader
+
 class ModelTrainer:
     """Handles model training and evaluation for credit risk prediction"""
     
-    def __init__(self, data_path = "", to_split: bool = True):
-        self.model = None
-        self.data_path = data_path
+    def __init__(self, file_path = "cred_card_featured_engg_train.csv", to_split: bool = True):
+        self.features = ConfigManager().get_config('features')  # Feature column names from config
+        self.file_path = file_path
         self.data = None
         self.train = None
         self.test = None
@@ -25,20 +28,18 @@ class ModelTrainer:
         #self.X_test = None
         #self.y_test = None
         
-    def prepare_training_data(self, split = 0.1, resample = True):
+    def load_training_data(self, split = 0.1, resample = True):
         """Prepare data for training"""
         
-        self.data = pd.read_csv(self.data_path)
+        reader = DVCReader()
+        self.data = reader.read_dataframe(self.file_path)
 
         # Verify correct columns:
-        features = ["Gender","Reality","ChldNo_1","wkphone","gp_Age_high", "gp_Age_highest", "gp_Age_low", "gp_Age_lowest","gp_worktm_high", "gp_worktm_highest", "gp_worktm_low", 
-                "gp_worktm_medium","occyp_hightecwk","occyp_officewk","famsizegp_1", "famsizegp_3more","houtp_Co-op apartment", "houtp_Municipal apartment","houtp_Office apartment",
-                "houtp_Rented apartment","houtp_With parents","edutp_Higher education","edutp_Incomplete higher", "edutp_Lower secondary","famtp_Civil marriage","famtp_Separated",
-                "famtp_Single / not married","famtp_Widow"]
-        if self.data.columns != features + ['target']:
+        if self.data.columns != self.features + ['target']:
             drop_cols = [col for col in self.data.columns if col not in features + ['target']]
             self.data = self.data.drop(columns=drop_cols)
         
+        '''
         # Synthetically generate extra data for minority class (this is only for the hypothetical of our project, not for real-world application/production):
         if resample == True:
             smote = SMOTE(sampling_strategy=0.25, random_state=10086)
@@ -51,38 +52,9 @@ class ModelTrainer:
             self.train, self.test = train_test_split(self.data, test_size=split, random_state=10086)
         else:
             self.train = self.data
-
-        '''
-        # Split Data
-        self.train, test_val = train_test_split(self.data, test_size=split, random_state=10086)
-        y_test_val = test_val['target'].astype('int')
-        X_test_val = test_val.drop(columns=['target'])
-        
-        self.X_val, self.X_test, self.y_val, self.y_test = train_test_split( X_test_val, y_test_val, test_size=split, random_state=10086)
-
-        # Apply SMOTE to training data for balance
-        if balance == True:
-            y_train = self.train['target'].astype('int')
-            #X_train = self.train[features]
-            X_train = self.train.drop(columns=['target'])
-            X_balance, y_balance = SMOTE().fit_resample(X_train, y_train)
-            train_balance = pd.DataFrame(X_balance, columns=X.columns)
-            train_balance['target'] = y_balance
-            self.train = train_balance
-        '''
-        
+        '''        
 
     def train_model(self):
-        '''
-        """Train Random Forest model"""
-        self.model = RandomForestClassifier(
-            n_estimators=250,
-            max_depth=12,
-            min_samples_leaf=16
-        )
-        self.model.fit(self.X_train, self.y_train)
-        '''      
-
         """Train Model Using H2O AutoML"""
         # Initialize H2O:
         #h2o = h2o.init(port = h20_port, ip = h20_ip)
@@ -102,10 +74,6 @@ class ModelTrainer:
         aml.train(x=x, y=y, training_frame=train, leaderboard_frame = val)
 
         self.model = aml.leader
+        h2o.save_model(self.model, path='models/credit_risk_model')
 
-    def save_model_and_test_data(self):
-        # Save model to GCS bucket:
-        h2o.save_model(self.model, path = 'gs://mlops-final-project-232/credit_risk_model')
 
-        # Save test set to GCS bucket:
-        self.test.to_csv('gs://mlops-final-project-232/credit_risk_test_data.csv', index=False)
