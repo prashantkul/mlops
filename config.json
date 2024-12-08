@@ -10,7 +10,14 @@
     "features" : ["Gender","Reality","ChldNo_1","wkphone","gp_Age_high", "gp_Age_highest", "gp_Age_low", "gp_Age_lowest","gp_worktm_high", "gp_worktm_highest", "gp_worktm_low", 
         "gp_worktm_medium","occyp_hightecwk","occyp_officewk","famsizegp_1", "famsizegp_3more","houtp_Co-op apartment", "houtp_Municipal apartment","houtp_Office apartment",
         "houtp_Rented apartment","houtp_With parents","edutp_Higher education","edutp_Incomplete higher", "edutp_Lower secondary","famtp_Civil marriage","famtp_Separated",
-        "famtp_Single / not married","famtp_Widow"],
+        "famtp_Single_not_married","famtp_Widow"],
     "h2o_port" : 54321,
-    "h2o_ip" : "35.184.233.137"
+    "h2o_ip" : "35.184.233.137",
+    "vertex_api_endpoint_details": {
+                                        "project": "271854447431",
+                                        "endpoint_id": "8280511129222905856",
+                                        "location": "us-central1"
+                                   } ,
+    "schema_gcs_path" : "gs://mlops-final-project-232/schemata/schema.yaml",
+    "location" : "us-central1"
 }
