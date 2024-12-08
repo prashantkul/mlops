@@ -44,7 +44,7 @@ class DataSplitter:
         mask = np.random.choice([1, 0], size=len(self.drift_random), p=[0.5, 0.5])
         multiplier = np.where(mask == 1, multiplier, 1)
         self.drift_random['inc'] = self.drift_random['inc'] * multiplier
-        self.drift_random['Gender'] = np.random.choice([0, 1], size=len(df), p=[0.25, 0.75])
+        self.drift_random['Gender'] = np.random.choice([0, 1], size=len(self.drift_random), p=[0.25, 0.75])
 
         # Calculate a moderate level of differential privacy for income:
         sensitivity = self.test['income'].max() - self.test['income'].min()
