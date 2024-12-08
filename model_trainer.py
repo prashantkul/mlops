@@ -31,7 +31,7 @@ class ModelTrainer:
         column_list.append('target')
 
         if column_list != self.data.columns.tolist():
-            drop_cols = [col for col in self.data.columns if col not in self.features + ['target']]
+            drop_cols = [col for col in self.data.columns if col not in column_list]
             self.data = self.data.drop(columns=drop_cols)
         
         # Initialize H2O:
@@ -57,20 +57,4 @@ class ModelTrainer:
         # Upload model to GCP:
         gcs = GCSHandler()
         gcs.handle_file("upload", "models/credit_risk_model", "models/credit_risk_model")
-
-        '''
-        # Synthetically generate extra data for minority class (this is only for the hypothetical of our project, not for real-world application/production):
-        if resample == True:
-            smote = SMOTE(sampling_strategy=0.25, random_state=10086)
-            X_resampled, y_resampled = smote.fit_resample(self.data.drop(columns=['target']), self.data['target'])
-            resampled = pd.DataFrame(X_resampled, columns=features)
-            resampled['target'] = y_resampled
-            self.data = resampled
-
-        if self.to_split == True:
-            self.train, self.test = train_test_split(self.data, test_size=split, random_state=10086)
-        else:
-            self.train = self.data
-        '''        
-
 
