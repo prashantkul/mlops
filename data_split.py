@@ -34,7 +34,7 @@ class DataSplitter:
 
         self.train, self.test = train_test_split(self.data, test_size=split, random_state=47, stratify=self.data['target'])
         self.train.to_csv("data\cred_card_featured_eng_train.csv", index=False)
-        self.test.to_csv("data\cred_card_featured_eng_test_ref.csv.csv", index=False)
+        self.test.to_csv("data\cred_card_featured_eng_test_ref.csv", index=False)
     
     def drift_data(self):
         """Simulate data drift by altering feature columns"""
