@@ -1,6 +1,6 @@
 {
     "os_separator" : "/",
-    "credit_application_dataset" : "application_record.csv",
+    "credit_application_dataset" : "application_data.csv",
     "credit_record_dataset" : "credit_record.csv",
     "AIRLFOW_HOME" : "/Users/prashantkulkarni/airflow",
     "model_location" : "mlops-final-project-232/h2o_output",

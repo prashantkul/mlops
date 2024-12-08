@@ -1,0 +1,13 @@
+project: mlops_final_project
+registry: gs://mlops-final-project-232/dataset/registry.db  # GCS path for the Feast registry
+provider: gcp  # Local setup since the offline store is local
+
+online_store:
+  type: datastore  # Uses Google Cloud Datastore as the online store
+
+offline_store:
+  type: file  # Use local file system for offline store (GCS could be used here as well, if needed)
+  path: gs://mlops-final-project-232/dataset/offline_store/
+
+logging:
+  level: INFO
