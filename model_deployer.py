@@ -40,7 +40,7 @@ class ModelDeployment:
             raise FileNotFoundError(f"Service account key file not found: {key_path}")
         
         try:
-            credentials = service_account.Credentials.from_service_account_file(key_path)
+            credentials = service_account.Credentials.from_service_account_file(key_path, scopes=["https://www.googleapis.com/auth/cloud-platform"])
             print("Successfully created credentials.")
             return credentials
         except Exception as e:
