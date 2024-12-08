@@ -3,8 +3,14 @@
     "credit_application_dataset" : "application_record.csv",
     "credit_record_dataset" : "credit_record.csv",
     "AIRLFOW_HOME" : "/Users/prashantkulkarni/airflow",
-    "model_location" : "/Users/prashantkulkarni/Documents/ml-ops/project/model",
+    "model_location" : "mlops-final-project-232/h2o_output",
     "gcs_bucket" : "mlops-final-project-232",
     "gcs_remote_path" : "dataset",
-    "gcs_client_id" : "pk-arg-prj4-datasci"
+    "gcs_client_id" : "pk-arg-prj4-datasci",
+    "features" : ["Gender","Reality","ChldNo_1","wkphone","gp_Age_high", "gp_Age_highest", "gp_Age_low", "gp_Age_lowest","gp_worktm_high", "gp_worktm_highest", "gp_worktm_low", 
+        "gp_worktm_medium","occyp_hightecwk","occyp_officewk","famsizegp_1", "famsizegp_3more","houtp_Co-op apartment", "houtp_Municipal apartment","houtp_Office apartment",
+        "houtp_Rented apartment","houtp_With parents","edutp_Higher education","edutp_Incomplete higher", "edutp_Lower secondary","famtp_Civil marriage","famtp_Separated",
+        "famtp_Single / not married","famtp_Widow"],
+    "h2o_port" : 54321,
+    "h2o_ip" : "35.184.233.137"
 }
