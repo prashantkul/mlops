@@ -25,6 +25,8 @@ class DataSplitter:
         # application/production. This dataset was relatively small, and the train/validate/test split left only 5 records of the
         # minority class in the test (production) dataset, which made for an unrealistic/anticlimactic demo of the model pipeline.
 
+        self.data['target'] = self.data['target'].astype(int)
+
         if self.resample == True:
             smote = SMOTE(sampling_strategy=resample_ratio, random_state=47)
             X_resampled, y_resampled = smote.fit_resample(self.data.drop(columns=['target']), self.data['target'])

@@ -14,12 +14,11 @@ from h2o.automl import H2OAutoML
 class ModelTrainer:
     """Handles model training and evaluation for credit risk prediction"""
     
-    def __init__(self, file_path = "cred_card_featured_engg_train.csv", to_split: bool = True):
+    def __init__(self, file_path = "cred_card_featured_eng_train.csv"):
         config = ConfigManager()
         reader = DVCReader()
         self.features = config.get_config('features')  # Feature column names from config
-        self.file_path = file_path
-        self.data = reader.read_dataframe(self.file_path)
+        self.data = reader.read_dataframe(file_path)
         self.h2o_port = config.get_config('h2o_port')   # h2o port from config
         self.h2o_ip = config.get_config('h2o_ip')   # h2o ip from config
         
