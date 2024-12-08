@@ -34,9 +34,12 @@ class ModelTrainer:
         reader = DVCReader()
         self.data = reader.read_dataframe(self.file_path)
 
+        column_list = self.features
+        column_list.append('target')
+
         # Verify correct columns:
-        if self.data.columns != self.features + ['target']:
-            drop_cols = [col for col in self.data.columns if col not in features + ['target']]
+        if column_list != self.data.columns.tolist():
+            drop_cols = [col for col in self.data.columns if col not in self.features + ['target']]
             self.data = self.data.drop(columns=drop_cols)
         
         '''
