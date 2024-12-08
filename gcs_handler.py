@@ -5,7 +5,7 @@ class GCSHandler:
     def __init__(self, bucket_name = "mlops-final-project-232"):
         self.bucket_name = bucket_name
         # Initialize the GCS client and bucket
-        self.client = storage.Client()
+        self.client= storage.Client.create_anonymous_client()
         self.bucket = self.client.bucket(bucket_name)
  
     def handle_file(self, operation, local_path, gcs_path):
@@ -27,9 +27,9 @@ class GCSHandler:
                 blob.upload_from_filename(local_path)
                 print(f"File {local_path} uploaded to {gcs_path} in bucket {self.bucket_name}.")
                 
-                # Optionally make public
-                blob.make_public()
-                print(f"Public URL: {blob.public_url}")
+                # # Optionally make public
+                # blob.make_public()
+                # print(f"Public URL: {blob.public_url}")
                 return blob.public_url
  
             elif operation == "download":
@@ -47,3 +47,8 @@ class GCSHandler:
         except Exception as e:
             print(f"Error during {operation}: {e}")
             return None
+
+#Usage
+# gcs_handler = GCSHandler()
+# gcs_handler.handle_file("upload", "successful_case.csv", "test_data/successful_case.csv")
+# #gcs_handler.handle_file("download", "downloaded_data.csv", "data/data.csv")
