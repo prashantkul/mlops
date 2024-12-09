@@ -7,7 +7,7 @@ import json
 
 
 class FeatureStore:
-    def __init__(self, file_path: str, key=uuid.uuid4()):
+    def __init__(self, file_path=None, key=uuid.uuid4()):
         """
         Initialize the FeatureUploader.
 
@@ -30,6 +30,7 @@ class FeatureStore:
         """
         Load the CSV file into a Pandas DataFrame and ensure event_time column exists.
         """
+        assert self.file_path is not None, "File path is required"
         self.df = pd.read_csv(self.file_path)
 
         if 'event_time' not in self.df.columns:
@@ -40,8 +41,9 @@ class FeatureStore:
         """
         Store the features in Redis.
         """
+        feature_data = []
         for _, row in self.df.iterrows():
-            feature_data = {
+            feature_data.append({
                 "ID": row['ID'],
                 "event_time": row['event_time'].isoformat(),
                 "Gender": row['Gender'],
@@ -95,10 +97,9 @@ class FeatureStore:
                 "famtp_Separated": row['famtp_Separated'],
                 "famtp_Single_not_married": row['famtp_Single_not_married'],
                 "famtp_Widow": row['famtp_Widow'],
-            }
+            })
 
-            # Use the ID as the Redis key and store the feature data as a JSON string
-            return key, feature_data
+        return key, feature_data
 
     def upload(self):
         """
@@ -108,6 +109,9 @@ class FeatureStore:
         key, features = self.stage_features(self.key)
         self.redis_client.set(f"features:{key}", json.dumps(features))
         print(f"Features from {self.file_path} have been uploaded to Redis successfully with key '{key}'.")
+
+    import json
+    import pandas as pd
 
     def get_features(self, key: str, as_dataframe: bool = False, as_csv: bool = False, csv_path: str = "features.csv"):
         """
@@ -123,26 +127,40 @@ class FeatureStore:
             dict | pd.DataFrame | None: The features for the given key as a dict, DataFrame, or CSV file.
         """
         try:
+
             raw_data = self.redis_client.get(f"features:{key}")
 
             if raw_data is None:
                 print(f"No data found for key '{key}'")
                 return None
 
-            features_dict = json.loads(raw_data.decode('utf-8'))
+            features_list = json.loads(raw_data.decode('utf-8'))
 
-            if as_dataframe:
-                df = pd.DataFrame([features_dict])
-                return df
+            if isinstance(features_list, list):
+                if as_dataframe:
+                    df = pd.DataFrame(features_list)
+                    return df
 
-            if as_csv:
-                df = pd.DataFrame([features_dict])
-                df.to_csv(csv_path, index=False)
-                print(f"Features saved to CSV at '{csv_path}'")
-                return csv_path
+                if as_csv:
+                    df = pd.DataFrame(features_list)
+                    df.to_csv(csv_path, index=False)
+                    print(f"Features saved to CSV at '{csv_path}'")
+                    return csv_path
 
-            return features_dict
+            else:
+                if as_dataframe:
+                    df = pd.DataFrame([features_list])
+                    return df
+
+                if as_csv:
+                    df = pd.DataFrame([features_list])
+                    df.to_csv(csv_path, index=False)
+                    print(f"Features saved to CSV at '{csv_path}'")
+                    return csv_path
+
+            return features_list
 
         except Exception as e:
             print(f"Error retrieving features for key '{key}': {e}")
             return None
+

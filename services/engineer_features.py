@@ -20,7 +20,7 @@ data.to_csv('data/cred_card_featured_engg.csv', index=False)
 
 file_path = 'data/cred_card_featured_engg.csv'
 
-uploader = FeatureStore(file_path, key="base_feature_set")
+uploader = FeatureStore(file_path, key="base_feature_set_2")
 uploader.upload()
 
 
