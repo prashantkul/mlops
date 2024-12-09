@@ -14,13 +14,19 @@ class FeatureStore:
         Args:
             file_path (str): Path to the CSV file containing feature data.
         """
-        # Hard-coded Redis configuration
-        self.redis_host = 'localhost'  # Default Redis host
-        self.redis_port = 6379  # Default Redis port
-        self.redis_db = 0  # Default Redis DB
+        self.redis_host = '35.184.233.137'
+        self.redis_port = 6379
+        self.redis_db = 0
+        self.redis_user = 'mlops'
+        self.redis_password = 'mlopspass'
 
-        # Connect to Redis
-        self.redis_client = redis.StrictRedis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
+        self.redis_client = redis.StrictRedis(
+            host=self.redis_host,
+            port=self.redis_port,
+            db=self.redis_db,
+            username=self.redis_user,
+            password=self.redis_password
+        )
 
         # CSV file path
         self.file_path = file_path
