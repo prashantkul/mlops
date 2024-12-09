@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  h2o-mojo-service:
+    build: .
+    ports:
+      - "0.0.0.0:38080:8080"  # Map external 38080 to internal 8080
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - FLASK_RUN_HOST=0.0.0.0
+      - LOG_LEVEL=INFO
+      - PREDICT_REQUEST_LOGGING=true
+      - JSON_LOGGING=true
+    volumes:
+      - ./model:/app/model
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+        labels: "h2o-mojo-service"
+        tag: "{{.Name}}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
