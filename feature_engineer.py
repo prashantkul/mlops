@@ -1,91 +1,147 @@
-import json
 import warnings
-from typing import List, Dict, Optional, Any
-import redis
 
-import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
+import pandas as pd
 
 warnings.filterwarnings('ignore')
 
+
 class FeatureEngineer:
     """Handles feature engineering tasks for credit risk analysis"""
-    
-    def __init__(self, redis_host='localhost', redis_port=6379):
-        self.data = None
-        self.redis_client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
-        
-    def _cache_key(self, feature_name: str, id: str) -> str:
-        return f"credit_risk:features:{feature_name}:{id}"
-        
-    def store_features(self, id: str, features: Dict[str, Any]):
-        """Store features permanently in Redis"""
-        for feature_name, value in features.items():
-            key = self._cache_key(feature_name, id)
-            self.redis_client.set(key, json.dumps(value))
-        
-    def engineer_features(self, data):
+
+    def __init__(self, application_data, credit_record):
+        self.application_data = application_data
+        self.credit_record = credit_record
+        self.data = self.merge_applications_with_credit_record()
+
+    def merge_applications_with_credit_record(self):
+        """Merge applications with credit record"""
+        self.rename_columns()
+        begin_month = pd.DataFrame(self.credit_record.groupby(["ID"])["MONTHS_BALANCE"].agg(min))
+        begin_month = begin_month.rename(columns={'MONTHS_BALANCE': 'begin_month'})
+        return pd.merge(self.application_data, begin_month, how="left", on="ID")
+
+    def engineer_features(self) -> pd.DataFrame:
         """Apply all feature engineering steps"""
-        self.data = data.copy()
+        self.data = self.data.copy()
         self.handle_missing_values()
         self.encode_categorical()
+        self.engineer_occyp_column()
         self.create_age_groups()
         self.create_work_time_groups()
         self.create_income_groups()
         self.create_family_size_groups()
+        self.one_hot_encode_columns()
+        self.create_target_from_credit_record()
+        self.clean_column_names()
         return self.data
-    
+
+    def rename_columns(self) -> pd.DataFrame:
+        self.application_data.rename(
+            columns={'CODE_GENDER': 'Gender', 'FLAG_OWN_CAR': 'Car', 'FLAG_OWN_REALTY': 'Reality',
+                     'CNT_CHILDREN': 'ChldNo', 'AMT_INCOME_TOTAL': 'inc',
+                     'NAME_EDUCATION_TYPE': 'edutp', 'NAME_FAMILY_STATUS': 'famtp',
+                     'NAME_HOUSING_TYPE': 'houtp', 'FLAG_EMAIL': 'email',
+                     'NAME_INCOME_TYPE': 'inctp', 'FLAG_WORK_PHONE': 'wkphone',
+                     'FLAG_PHONE': 'phone', 'CNT_FAM_MEMBERS': 'famsize',
+                     'OCCUPATION_TYPE': 'occyp'
+                     }, inplace=True)
+
     def handle_missing_values(self):
         """Handle missing values in the dataset"""
         self.data = self.data.dropna()
         self.data = self.data.mask(self.data == 'NULL').dropna()
-        
+
     def encode_categorical(self):
         """Encode categorical variables"""
-        self.data['Gender'] = self.data['Gender'].replace(['F','M'],[0,1])
-        self.data['Reality'] = self.data['Reality'].replace(['N','Y'],[0,1])
-        self.data['Car'] = self.data['Car'].replace(['N','Y'],[0,1])
-        
+        self.data['Gender'] = self.data['Gender'].replace(['F', 'M'], [0, 1])
+        self.data['Reality'] = self.data['Reality'].replace(['N', 'Y'], [0, 1])
+        self.data['Car'] = self.data['Car'].replace(['N', 'Y'], [0, 1])
+        self.data['wkphone'] = self.data['wkphone'].astype(int)
+        self.data['phone'] = self.data['phone'].astype(int)
+        self.data['email'] = self.data['email'].astype(int)
+
+    def engineer_occyp_column(self):
+        # Combine similar occupations into broader categories
+        self.data.loc[
+            self.data['occyp'].isin([
+                'Cleaning staff', 'Cooking staff', 'Drivers', 'Laborers',
+                'Low-skill Laborers', 'Security staff', 'Waiters/barmen staff'
+            ]),
+            'occyp'] = 'Laborwk'
+
+        self.data.loc[
+            self.data['occyp'].isin([
+                'Accountants', 'Core staff', 'HR staff', 'Medicine staff',
+                'Private service staff', 'Realty agents', 'Sales staff', 'Secretaries'
+            ]),
+            'occyp'] = 'officewk'
+
+        self.data.loc[
+            self.data['occyp'].isin([
+                'Managers', 'High skill tech staff', 'IT staff'
+            ]),
+            'occyp'] = 'hightecwk'
+
     def create_age_groups(self):
-        """Create age groups from DAYS_BIRTH"""
-        self.data['Age'] = -(self.data['DAYS_BIRTH'])//365
-        self.data = self.create_groups(self.data, 'Age', 5, 
-                                     ["lowest","low","medium","high","highest"])
-        
+        self.data['Age'] = -(self.data['DAYS_BIRTH']) // 365
+        self.data['gp_Age'] = pd.cut(self.data['Age'],
+                                     bins=5,
+                                     labels=["lowest", "low", "medium", "high", "highest"])
+
     def create_work_time_groups(self):
-        """Create work time groups from DAYS_EMPLOYED"""
-        self.data['worktm'] = -(self.data['DAYS_EMPLOYED'])//365
-        self.data[self.data['worktm']<0] = np.nan
+        self.data['worktm'] = -(self.data['DAYS_EMPLOYED']) // 365
+        self.data.loc[self.data['worktm'] < 0, 'worktm'] = np.nan
         self.data['worktm'].fillna(self.data['worktm'].mean(), inplace=True)
-        self.data = self.create_groups(self.data, 'worktm', 5,
-                                     ["lowest","low","medium","high","highest"])
-        
+        self.data['gp_worktm'] = pd.cut(self.data['worktm'],
+                                        bins=5,
+                                        labels=["lowest", "low", "medium", "high", "highest"])
+
     def create_income_groups(self):
-        """Create income groups"""
-        self.data['inc'] = self.data['inc']/10000
-        self.data = self.create_groups(self.data, 'inc', 3, ["low","medium","high"], qcut=True)
-        
+        self.data['inc'] = self.data['inc'] / 10000
+        self.data['gp_inc'] = pd.qcut(self.data['inc'],
+                                      q=3,
+                                      labels=["low", "medium", "high"])
+
     def create_family_size_groups(self):
         """Create family size groups"""
         self.data['famsize'] = self.data['famsize'].astype(int)
         self.data['famsizegp'] = self.data['famsize']
-        self.data['famsizegp'] = self.data['famsizegp'].astype(object)
-        self.data.loc[self.data['famsizegp']>=3, 'famsizegp'] = '3more'
-        
+        self.data.loc[self.data['famsizegp'] >= 3, 'famsizegp'] = '3more'
+
+    def create_target_from_credit_record(self):
+        """Create target column for default prediction from credit record"""
+        record = self.credit_record.copy()
+        record['dep_value'] = None
+        record.loc[record['STATUS'].isin(['2', '3', '4', '5']), 'dep_value'] = 'Yes'
+
+        count_df = record.groupby('ID')['dep_value'].count().reset_index()
+        count_df['dep_value'] = np.where(count_df['dep_value'] > 0, 'Yes', 'No')
+
+        self.data = pd.merge(self.data, count_df[['ID', 'dep_value']], on='ID', how='left')
+        self.data['target'] = np.where(self.data['dep_value'] == 'Yes', 1, 0)
+
+    def one_hot_encode_columns(self):
+        """One-hot encode categorical columns, but keep them as integers"""
+        categorical_columns = ['ChldNo', 'inctp', 'occyp', 'houtp', 'edutp', 'famtp', 'famsizegp', 'gp_Age',
+                               'gp_worktm', 'gp_inc']
+        for col in categorical_columns:
+            if col in self.data.columns:
+                self.data = self.convert_dummy(self.data, col)
+
     @staticmethod
-    def create_groups(df, col, bins, labels, qcut=False):
-        """Helper method to create groups from continuous variables"""
-        if qcut:
-            localdf = pd.qcut(df[col], q=bins, labels=labels)
-        else:
-            localdf = pd.cut(df[col], bins=bins, labels=labels)
-        
-        localdf = pd.DataFrame(localdf)
-        name = 'gp_' + col
-        localdf[name] = localdf[col]
-        df = df.join(localdf[name])
-        df[name] = df[name].astype(object)
+    def convert_dummy(df: pd.DataFrame, feature: str) -> pd.DataFrame:
+        """Convert categorical features to one-hot encoded integers"""
+        dummies = pd.get_dummies(df[feature], prefix=feature, dtype=int)
+        df = df.drop(columns=[feature])
+        df = pd.concat([df, dummies], axis=1)
         return df
+
+    import re
+
+    def clean_column_names(self):
+        """Clean column names by replacing spaces with underscores and removing unwanted characters"""
+        self.data.columns = [col.replace(" ", "_") for col in self.data.columns]
+        self.data.columns = self.data.columns.str.replace(r'[_/\\-]+', '_', regex=True)
+        self.data.columns = self.data.columns.str.replace(r'^\_|\_$', '', regex=True)
+        self.data.columns = self.data.columns.str.replace(r'_{2,}', '_', regex=True)
