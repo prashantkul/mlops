@@ -1,10 +1,7 @@
-from feature_engineer import FeatureEngineer
-
-from dvc_operations.download import DVCReader
 from config_manager import ConfigManager
-import pandas as pd
-
-from feature_store import FeatureUploader
+from dvc_operations.download import DVCReader
+from feature_engineer import FeatureEngineer
+from feature_store import FeatureStore
 
 config_manager = ConfigManager()
 dvc = DVCReader()
@@ -21,9 +18,9 @@ data = fe.engineer_features()
 filename = "cred_card_featured_engg.csv"
 data.to_csv('data/cred_card_featured_engg.csv', index=False)
 
-file_path = 'data/cred_card_featured_engg.csv'  # Path to the CSV with features
+file_path = 'data/cred_card_featured_engg.csv'
 
-uploader = FeatureUploader(file_path)
+uploader = FeatureStore(file_path, key="base_feature_set")
 uploader.upload()
 
 
