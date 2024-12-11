@@ -44,7 +44,7 @@ class ModelTrainer:
         x.remove(y)
 
         # Run AutoML for 20 base models
-        aml = H2OAutoML(max_models=20, seed=47, balance_classes = True, project_name = "mlops_final_project")
+        aml = H2OAutoML(max_models=5, seed=47, balance_classes = True, project_name = "mlops_final_project")
         aml.train(x=x, y=y, training_frame=train, leaderboard_frame = val)
 
 
