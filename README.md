@@ -61,6 +61,13 @@ kicking of model training in apache airflow
     --location <location> \
     dags trigger -- credit_card_prediction_dag
 ```
+## H2O AutoML
+We performed model training through H20 AutoML
+
+```python
+  aml = H2OAutoML(max_models=5, seed=47, balance_classes = True, project_name = "mlops_final_project")
+  aml.train(x=x, y=y, training_frame=train, leaderboard_frame = val)
+```
 
 ## Model Deployment
 ```python
@@ -70,15 +77,9 @@ kicking of model training in apache airflow
   model.upload_model_sample(display_name=model_name)
   model.deploy_model(model_name)
 ```
-## AutoML
-We performed model monitoring with H20
-
-```
-  TK
-```
 
 ## Model Monitoring
-Arize is our model monitoring platform
+We utilized Arize as our model monitoring platform, and validated with batch evaluation through H2O FLOW
 
 ```
   TK
