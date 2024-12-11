@@ -1,0 +1,16 @@
+{
+  "instances": [{
+    "ChldNo_1": true,
+    "gp_Age_low": true,
+    "gp_worktm_low": true,
+    "occyp_officewk": true,
+    "famsizegp_1": true,
+    "houtp_Municipalapartment": true,
+    "edutp_Highereducation": true,
+    "famtp_Single/notmarried": true,
+    "Gender": 1.0,
+    "inc": 50000.0,
+    "Reality": 1.0,
+    "wkphone": 1.0
+  }]
+}
