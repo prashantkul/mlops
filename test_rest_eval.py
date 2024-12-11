@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 import requests
@@ -11,16 +12,36 @@ import sys
 from arize.api import Client
 from arize.utils.types import ModelTypes, Environments
 
-EXPECTED_COLUMNS = [
-    "Gender", "inc", "Reality", "ChldNo_1", "wkphone",
-    "gp_Age_high", "gp_Age_highest", "gp_Age_low", "gp_Age_lowest",
-    "gp_worktm_high", "gp_worktm_highest", "gp_worktm_low", "gp_worktm_medium",
-    "occyp_hightecwk", "occyp_officewk", "famsizegp_1", "famsizegp_3more",
-    "houtp_Co-op apartment", "houtp_Municipal apartment", "houtp_Office apartment",
-    "houtp_Rented apartment", "houtp_With parents",
-    "edutp_Higher education", "edutp_Incomplete higher", "edutp_Lower secondary",
-    "famtp_Civil marriage", "famtp_Separated", "famtp_Single / not married",
-    "famtp_Widow", "target"
+EXPECTED_COLUMNS =  [
+    'ChldNo_1',
+    'gp_Age_high',
+    'gp_Age_highest',
+    'gp_Age_low',
+    'gp_Age_lowest',
+    'gp_worktm_high',
+    'gp_worktm_highest',
+    'gp_worktm_low',
+    'gp_worktm_medium',
+    'occyp_hightecwk',
+    'occyp_officewk',
+    'famsizegp_1',
+    'famsizegp_3more',
+    'houtp_Co_op_apartment',
+    'houtp_Municipal_apartment',
+    'houtp_Office_apartment',
+    'houtp_Rented_apartment',
+    'houtp_With_parents',
+    'edutp_Higher_education',
+    'edutp_Incomplete_higher',
+    'edutp_Lower_secondary',
+    'famtp_Civil_marriage',
+    'famtp_Separated',
+    'famtp_Single_not_married',
+    'famtp_Widow',
+    'Gender',
+    'inc',
+    'Reality',
+    'wkphone'
 ]
 
 class PredictionError(Exception):
@@ -229,7 +250,7 @@ class PredictionClient:
             raise PredictionError("Arize log failed", e)
             # return False
 
-    def process_file(self, csv_file, batch_size=100, delay_ms=0, progress_interval=10):
+    def process_file(self, csv_file, delay_ms=0, progress_interval=10):
         """Process CSV file and make predictions with comprehensive error tracking"""
         try:
             # Reset statistics for new processing run
@@ -283,7 +304,6 @@ class PredictionClient:
                         else:
                             self.stats['rows_without_target'] += 1
                         
-                        # Log to Arize
                         actual = int(row_data['target']) if has_target else None
                         self.log_to_arize(
                             row_data=row_data,
@@ -305,8 +325,7 @@ class PredictionClient:
                     print("\nProcessing stopped by user after preview")
                     return
                 
-                # Process remaining rows
-                batch_predictions = []
+                # Process remaining rows without batch checks
                 for index in range(preview_size, total_rows):
                     try:
                         row_data = df.iloc[index].to_dict()
@@ -314,8 +333,6 @@ class PredictionClient:
                         
                         prediction = self.make_prediction(request_data, index)
                         if prediction:
-                            batch_predictions.append(prediction['predictions'])
-                            
                             if has_target:
                                 self.stats['rows_with_target'] += 1
                                 actual = int(row_data['target'])
@@ -325,7 +342,6 @@ class PredictionClient:
                             else:
                                 self.stats['rows_without_target'] += 1
                             
-                            # Log to Arize
                             actual = int(row_data['target']) if has_target else None
                             self.log_to_arize(
                                 row_data=row_data,
@@ -336,14 +352,6 @@ class PredictionClient:
                         
                         if (index + 1) % progress_interval == 0:
                             print(f"Processed {index + 1} of {total_rows} records")
-                        
-                        if (index + 1) % batch_size == 0:
-                            print(f"\nBatch milestone: {index + 1} of {total_rows} records")
-                            self.print_statistics()
-                            if not self.get_user_confirmation():
-                                print("\nProcessing stopped by user")
-                                return
-                            batch_predictions = []
                         
                         if delay_ms > 0:
                             time.sleep(delay_ms / 1000)
@@ -458,19 +466,18 @@ class PredictionClient:
 def main():
     # Configuration
     ENDPOINT_URL = "https://h2o-mojo-service-271854447431.us-central1.run.app/predict"
-    CSV_FILE = "/Users/prashantkulkarni/Documents/ml-ops/project/dataset/Latest-dataset/cred_card_featured_eng_test_ref_500.csv"  # Replace with your CSV file path
-    BATCH_SIZE = 100
+    #ENDPOINT_URL = "http://35.184.233.137:38080/predict"
+    CSV_FILE = "/Users/prashantkulkarni/Documents/ml-ops/project/dataset/dataset-v2/cred_card_featured_eng_test_ref.csv"  # Replace with your CSV file path
     DELAY_MS = 100  # 100ms delay between requests
     
     try:
         client = PredictionClient(
             endpoint_url=ENDPOINT_URL,
-            arize_api_key="your_api_key",  # Replace with your Arize API key
-            arize_space_key="your_space_key"  # Replace with your Arize space key
+            arize_api_key="your_api_key",  
+            arize_space_key="your_space_key"  
         )
         client.process_file(
             csv_file=CSV_FILE,
-            batch_size=BATCH_SIZE,
             delay_ms=DELAY_MS
         )
     except Exception as e:
