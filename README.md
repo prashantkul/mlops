@@ -2,7 +2,7 @@
 Final Project for MSADS 32021
 
 ## Objective 
-Build Train and Deploy a model to predict credit card approval
+Build, train, deploy, and monitor a model to predict credit card approval
 
 ## Dataset
 credit card dataset can be found on [Kaggle]([url](https://www.kaggle.com/datasets/rikdifos/credit-card-approval-prediction))
