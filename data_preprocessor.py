@@ -30,7 +30,7 @@ class DataPreprocessor:
 
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Load the application and credit record data"""
-        print(self.credit_application_path)
+
         self.application_data = pd.read_csv(self.credit_application_path, encoding='utf-8')
         self.credit_record = pd.read_csv(self.credit_record_path, encoding='utf-8')
         return self.application_data, self.credit_record
